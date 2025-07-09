@@ -1,7 +1,7 @@
 # SIS Plugin 
 
 
-Usage into the host application config.yaml file:
+Configuration in the Host Application's config.yaml
 
 ```yaml
 plugins:
@@ -15,9 +15,10 @@ plugins:
         fieldx: value-here
 ```
 
-As you see from plugin definition configuration there is `yamlConfiguration` field under which can be 
-defined configuration for plugin binary/service runtime behavior. The content of `yamlConfiguration` field is sent to plugin
-automatically by calling a gRPC method 
-`(p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error)`.
+As shown above, each plugin entry includes a `yamlConfiguration` field. This section allows you to define the configuration 
+parameters for the plugin’s binary or service at runtime. The contents of `yamlConfiguration` are automatically passed to the plugin through a gRPC call:
+```go
+(p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error)`.
+```
 
 [Here](./internal/sis/plugin.go) you can find the example how to read it.
