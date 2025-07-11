@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	config.BaseConfig `mapstructure:",squash"`
+	config.BaseConfig `yaml:",inline"`
 
 	CustomX CustomX `yaml:"customx"`
 }
