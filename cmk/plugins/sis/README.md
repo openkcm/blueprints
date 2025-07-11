@@ -8,7 +8,7 @@ plugins:
   - name: <plugin name here>
     path: <binary path>
     type: SystemInformationService
-    yamlConfiguration:
+    yamlConfiguration: |
       logger:
         level: debug
       customx:
