@@ -28,7 +28,7 @@ func NewPlugin() *Plugin {
 	return &Plugin{}
 }
 
-// SetLogger injected as part of runtime plugin start
+// SetLogger method is called whenever the plugin start and giving the logger of host application
 func (p *Plugin) SetLogger(logger hclog.Logger) {
 	p.logger = logger
 }
@@ -43,7 +43,7 @@ func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*
 		return nil, err
 	}
 
-	// Logger initialisation here in case if you don have the above defined SetLogger method, that will inject the logger seamlessly
+	// Logger initialization here in case if you don't have the above defined SetLogger method, that will inject the logger seamlessly
 	//err = logger.InitAsDefault(cfg.Logger, cfg.Application)
 	//if err != nil {
 	//	return nil, oops.In("main").
@@ -56,6 +56,7 @@ func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*
 	return &configv1.ConfigureResponse{}, nil
 }
 
+// Get Plugin method/operation
 func (p *Plugin) Get(ctx context.Context, _ *systeminformationv1.GetRequest) (*systeminformationv1.GetResponse, error) {
 
 	slogctx.Debug(ctx, "Get called")
