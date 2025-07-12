@@ -4,10 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/openkcm/common-sdk/pkg/logger"
+	"github.com/hashicorp/go-hclog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
-	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
 	"github.tools.sap/kms/cert-issuer-plugin/internal/config"
 	"gopkg.in/yaml.v3"
@@ -16,6 +15,8 @@ import (
 type Plugin struct {
 	configv1.UnsafeConfigServer
 	systeminformationv1.UnimplementedSystemInformationServiceServer
+
+	logger hclog.Logger
 }
 
 var (
@@ -25,6 +26,11 @@ var (
 
 func NewPlugin() *Plugin {
 	return &Plugin{}
+}
+
+// SetLogger injected as part of runtime plugin start
+func (p *Plugin) SetLogger(logger hclog.Logger) {
+	p.logger = logger
 }
 
 // Configure configures the plugin with the given configuration
@@ -37,12 +43,12 @@ func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*
 		return nil, err
 	}
 
-	// Logger initialisation
-	err = logger.InitAsDefault(cfg.Logger, cfg.Application)
-	if err != nil {
-		return nil, oops.In("main").
-			Wrapf(err, "Failed to initialise the logger")
-	}
+	// Logger initialisation here in case if you don have the above defined SetLogger method, that will inject the logger seamlessly
+	//err = logger.InitAsDefault(cfg.Logger, cfg.Application)
+	//if err != nil {
+	//	return nil, oops.In("main").
+	//		Wrapf(err, "Failed to initialise the logger")
+	//}
 
 	//TODO: Additional business logic to be added here using the plugin configuration
 	// Use additional cfg.CustomX plugin configuration
