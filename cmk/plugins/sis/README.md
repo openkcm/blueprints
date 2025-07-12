@@ -8,9 +8,8 @@ plugins:
   - name: <plugin name here>
     path: <binary path>
     type: SystemInformationService
+    logLevel: debug #oneof: info, debug, error, warn
     yamlConfiguration: |
-      logger:
-        level: debug
       customx:
         fieldx: value-here
 ```
