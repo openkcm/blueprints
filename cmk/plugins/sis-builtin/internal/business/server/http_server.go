@@ -64,10 +64,22 @@ func StartHTTPServer(ctx context.Context, cfg *config.Config, plugins *catalog.C
 	shutdownCtx, shutdownRelease := context.WithTimeout(ctx, cfg.HTTP.ShutdownTimeout)
 	defer shutdownRelease()
 
-	if err := server.Shutdown(shutdownCtx); err != nil {
-		return oops.In("HTTP Server").
+	listErrors := make([]error, 0)
+	err = plugins.Close()
+	if err != nil {
+		listErrors = append(listErrors, oops.In("HTTP Server").
 			WithContext(ctx).
-			Wrapf(err, "Failed shutting down HTTP server")
+			Wrapf(err, "Failed to close plugins"))
+	}
+
+	if err = server.Shutdown(shutdownCtx); err != nil {
+		listErrors = append(listErrors, oops.In("HTTP Server").
+			WithContext(ctx).
+			Wrapf(err, "Failed shutting down HTTP server"))
+	}
+
+	if len(listErrors) > 0 {
+		return errors.Join(listErrors...)
 	}
 
 	slogctx.Info(ctx, "Completed graceful shutdown of HTTP server")

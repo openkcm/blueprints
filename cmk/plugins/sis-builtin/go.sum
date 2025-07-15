@@ -96,6 +96,10 @@ github.com/openkcm/plugin-sdk v0.1.1-0.20250714183229-60f1fbcc2837 h1:R8DklfRiiT
 github.com/openkcm/plugin-sdk v0.1.1-0.20250714183229-60f1fbcc2837/go.mod h1:9PmQym3pfAAtGsDtaCgseigwzYwBCpE0d2vTjgTM38M=
 github.com/openkcm/plugin-sdk v0.1.1-0.20250714184442-634125ed8066 h1:g9Rp6GmAOt8AduQ+LZhkwDO245Y4tjXcvofpuLNy8VQ=
 github.com/openkcm/plugin-sdk v0.1.1-0.20250714184442-634125ed8066/go.mod h1:9PmQym3pfAAtGsDtaCgseigwzYwBCpE0d2vTjgTM38M=
+github.com/openkcm/plugin-sdk v0.1.1-0.20250714190711-aa4d1cb3e0b0 h1:HQnnJU2rkMUiWrDCTuNJ8kpPRoSUI33T8b2wdJqxmsk=
+github.com/openkcm/plugin-sdk v0.1.1-0.20250714190711-aa4d1cb3e0b0/go.mod h1:9PmQym3pfAAtGsDtaCgseigwzYwBCpE0d2vTjgTM38M=
+github.com/openkcm/plugin-sdk v0.1.1-0.20250715083130-77dcaf7133f8 h1:GvsW90BgI6IHVirz3HfhILJg51cjiyuaw6wq1W4Vm4w=
+github.com/openkcm/plugin-sdk v0.1.1-0.20250715083130-77dcaf7133f8/go.mod h1:9PmQym3pfAAtGsDtaCgseigwzYwBCpE0d2vTjgTM38M=
 github.com/pborman/getopt v0.0.0-20170112200414-7148bc3a4c30/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/pelletier/go-toml/v2 v2.2.4 h1:mye9XuhQ6gvn5h28+VilKrrPoQVanw5PMw/TB0t5Ec4=
 github.com/pelletier/go-toml/v2 v2.2.4/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8t9Stt+h56mCY=
