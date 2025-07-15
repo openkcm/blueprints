@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/openkcm/common-sdk v0.1.0
-	github.com/openkcm/plugin-sdk v0.1.1-0.20250715083130-77dcaf7133f8
+	github.com/openkcm/plugin-sdk v0.1.1-0.20250715122124-ef6a9465bb07
 	github.com/samber/oops v1.17.0
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.35.0

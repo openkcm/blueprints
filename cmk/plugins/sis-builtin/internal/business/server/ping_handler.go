@@ -26,8 +26,8 @@ func pingHandlerFunc(cfg *config.Config, plugins *catalog.Catalog) func(http.Res
 
 	tracer := otel.Tracer("PingHandler", trace.WithInstrumentationAttributes(traceAttrs...))
 
-	sisPluging := plugins.LookupByTypeAndName("SystemInformationService", "sis")
-	sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPluging.ClientConnection())
+	sisPlugin := plugins.LookupByTypeAndName("SystemInformationService", "sis")
+	sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPlugin.ClientConnection())
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		// Request Id will be propagated through all method calls propagated of this HTTP handler
