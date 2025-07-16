@@ -43,12 +43,12 @@ func NewPlugin() *Plugin {
 
 // SetLogger method is called whenever the plugin start and giving the logger of host application
 func (p *Plugin) SetLogger(logger hclog.Logger) {
-	p.logger = logger
+	p.logger = logger.Named("plugin-sis")
 }
 
 // Configure configures the plugin with the given configuration
 func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error) {
-	p.logger.Info("SIS Configuring plugin")
+	p.logger.Debug("SIS Configuring plugin")
 
 	cfg := &config.Config{}
 	err := yaml.Unmarshal([]byte(req.GetYamlConfiguration()), cfg)

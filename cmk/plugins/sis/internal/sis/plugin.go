@@ -28,7 +28,7 @@ func NewPlugin() *Plugin {
 
 // SetLogger method is called whenever the plugin start and giving the logger of host application
 func (p *Plugin) SetLogger(logger hclog.Logger) {
-	p.logger = logger
+	p.logger = logger.Named("plugin.sis")
 }
 
 // Configure configures the plugin with the given configuration
@@ -48,9 +48,9 @@ func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*
 }
 
 // Get Plugin method/operation
-func (p *Plugin) Get(ctx context.Context, _ *systeminformationv1.GetRequest) (*systeminformationv1.GetResponse, error) {
+func (p *Plugin) Get(_ context.Context, req *systeminformationv1.GetRequest) (*systeminformationv1.GetResponse, error) {
 
-	p.logger.Info("Get called")
+	p.logger.Debug("SIS Get called", "req", req.GetId())
 
 	//TODO: Business logic here
 

@@ -11,12 +11,13 @@ status:
   profiling: true
 
 logger:
-  level: debug # one of: debug, info, warn, error
+  level: info # one of: debug, info, warn, error
   # Format of the logs
   format: json # one of: json, text
 
 
 plugins:
   - name: sis
+    logLevel: debug
     yamlConfiguration: |
       hura: text
