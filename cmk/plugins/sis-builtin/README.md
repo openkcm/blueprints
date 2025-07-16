@@ -20,3 +20,6 @@ parameters for the plugin’s binary or service at runtime. The contents of `yam
 Example :
 - Builtin plugin, see the [example](./internal/builtin/sis/plugin.go)
 - Load a builtin plugin, see the [example](./internal/business/business.go)
+
+
+Dummy service using sis builtin plugin [application](./cmd/main.go).

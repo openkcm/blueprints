@@ -21,3 +21,11 @@ parameters for the plugin’s binary or service at runtime. The contents of `yam
 ```
 
 [Here](./external-plugin-binary/plugin.go) you can find the example how to read it.
+
+Build sis plugin as separate binaries
+```bash
+go build -o sis-plugin ./external-plugin-binary
+```
+
+Dummy service using sis-plugin [application](./cmd/main.go).
+
