@@ -20,7 +20,9 @@ parameters for the plugin’s binary or service at runtime. The contents of `yam
 (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error)`.
 ```
 
-[Here](./external-plugin-binary/plugin.go) you can find the example how to read it.
+Example :
+- External plugin, see the [example](./external-plugin-binary/plugin.go)
+- Load a plugins, see the [example](./internal/business/business.go)
 
 Build sis plugin as separate binaries
 ```bash
