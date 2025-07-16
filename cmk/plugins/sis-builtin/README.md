@@ -23,3 +23,39 @@ Example :
 
 
 Dummy service using sis builtin plugin [application](./cmd/main.go).
+
+
+## Usage source code
+
+Loading all plugins given through config.yaml file as configuration
+```glang
+plugins, err := catalog.Load(ctx, catalog.Config{
+    Logger:        slog.Default(),
+    PluginConfigs: cfg.Plugins,
+}, builtin.BuiltIns()...)
+if err != nil {
+    return err
+}
+```
+
+Closing all plugins as resources
+```golang
+err := plugins.Close()
+if err != nil {
+    // do something with the error
+}
+```
+
+Load configured sis plugin and create the grpc client
+```golang
+sisPlugin := plugins.LookupByTypeAndName("SystemInformationService", "sis")
+sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPlugin.ClientConnection())
+```
+
+Call a grpc `Get` method out of sis plugin
+```golang
+_, err := sisClient.Get(ctx, &systeminformationv1.GetRequest{
+    Id:   uuid.New().String(),
+    Type: systeminformationv1.RequestType_REQUEST_TYPE_SYSTEM,
+})
+```

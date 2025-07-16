@@ -26,6 +26,7 @@ func pingHandlerFunc(cfg *config.Config, plugins *catalog.Catalog) func(http.Res
 
 	tracer := otel.Tracer("PingHandler", trace.WithInstrumentationAttributes(traceAttrs...))
 
+	// Load configured sis plugin and create the grpc client
 	sisPlugin := plugins.LookupByTypeAndName("SystemInformationService", "sis")
 	sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPlugin.ClientConnection())
 

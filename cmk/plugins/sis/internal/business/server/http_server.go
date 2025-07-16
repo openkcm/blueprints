@@ -64,6 +64,8 @@ func StartHTTPServer(ctx context.Context, cfg *config.Config, plugins *catalog.C
 	defer shutdownRelease()
 
 	listErrors := make([]error, 0)
+
+	// Closing all plugins as resources
 	err = plugins.Close()
 	if err != nil {
 		listErrors = append(listErrors, oops.In("HTTP Server").

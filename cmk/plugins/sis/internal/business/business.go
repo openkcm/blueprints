@@ -10,6 +10,8 @@ import (
 )
 
 func Main(ctx context.Context, cfg *config.Config) error {
+
+	// Loading all plugins given through config.yaml file as configuration
 	plugins, err := catalog.Load(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
