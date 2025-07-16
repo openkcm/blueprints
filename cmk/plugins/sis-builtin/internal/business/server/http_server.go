@@ -10,7 +10,7 @@ import (
 	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/config"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 )
 
 // registerHandlers registers the default http handlers for the status server

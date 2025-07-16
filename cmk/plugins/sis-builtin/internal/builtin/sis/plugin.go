@@ -7,7 +7,7 @@ import (
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/config"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 	"gopkg.in/yaml.v3"
 )
 

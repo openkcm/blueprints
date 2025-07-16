@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/builtin"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/business/server"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/config"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/builtin"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/business/server"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 )
 
 func Main(ctx context.Context, cfg *config.Config) error {

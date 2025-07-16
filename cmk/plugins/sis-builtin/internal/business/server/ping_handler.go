@@ -11,7 +11,7 @@ import (
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	slogctx "github.com/veqryn/slog-context"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/config"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"

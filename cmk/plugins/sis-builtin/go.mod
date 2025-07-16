@@ -1,4 +1,4 @@
-module github.tools.sap/kms/cert-issuer-builtin-plugin
+module github.tools.sap/kms/sis-builtin-plugin
 
 go 1.24.3
 
@@ -31,7 +31,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
 	github.com/hashicorp/go-plugin v1.6.3 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
-	github.com/magodo/slog2hclog v0.0.0-20240614031327-090ebd72a033 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect

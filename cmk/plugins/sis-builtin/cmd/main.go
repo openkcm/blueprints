@@ -15,9 +15,9 @@ import (
 	"github.com/openkcm/common-sdk/pkg/otlp"
 	"github.com/openkcm/common-sdk/pkg/status"
 	"github.com/samber/oops"
-	root "github.tools.sap/kms/cert-issuer-builtin-plugin"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/business"
-	"github.tools.sap/kms/cert-issuer-builtin-plugin/internal/config"
+	root "github.tools.sap/kms/sis-builtin-plugin"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/business"
+	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 
 	slogctx "github.com/veqryn/slog-context"
 

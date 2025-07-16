@@ -1,0 +1,25 @@
+application:
+  name: blueprint
+  environment: development
+
+http:
+  address: :9092
+
+status:
+  enabled: true
+  address: ":8888"
+  profiling: true
+
+logger:
+  level: info # one of: debug, info, warn, error
+  # Format of the logs
+  format: json # one of: json, text
+
+
+plugins:
+  - name: sis
+    type: SystemInformationService
+    path: ./sis-plugin
+    logLevel: debug
+    yamlConfiguration: |
+      hura: text
