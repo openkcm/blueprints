@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/common-sdk/pkg/otlp"
-	"github.com/openkcm/plugin-sdk/pkg/catalog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	slogctx "github.com/veqryn/slog-context"
 	"github.tools.sap/kms/sis-plugin/internal/config"
@@ -19,16 +18,12 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func pingHandlerFunc(cfg *config.Config, plugins *catalog.Catalog) func(http.ResponseWriter, *http.Request) {
+func pingHandlerFunc(cfg *config.Config, sisClient systeminformationv1.SystemInformationServiceClient) func(http.ResponseWriter, *http.Request) {
 	traceAttrs := otlp.CreateAttributesFrom(cfg.Application,
 		attribute.String(commoncfg.AttrOperation, "ping"),
 	)
 
 	tracer := otel.Tracer("PingHandler", trace.WithInstrumentationAttributes(traceAttrs...))
-
-	// Load configured sis plugin and create the grpc client
-	sisPlugin := plugins.LookupByTypeAndName("SystemInformationService", "sis")
-	sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPlugin.ClientConnection())
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		// Request Id will be propagated through all method calls propagated of this HTTP handler

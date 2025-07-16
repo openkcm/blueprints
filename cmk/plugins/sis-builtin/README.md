@@ -7,7 +7,7 @@ Configuration in the Host Application's config.yaml
 ```yaml
 plugins:
   - name: <plugin name here>
-    yamlConfiguration: |
+    yamlConfiguration: |[main.go](../sis/external-plugin-binary/main.go)
       customx:
         fieldx: value-here
 ```

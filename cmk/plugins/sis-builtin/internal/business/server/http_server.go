@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
+	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -15,7 +16,11 @@ import (
 
 // registerHandlers registers the default http handlers for the status server
 func registerHandlers(mux *http.ServeMux, cfg *config.Config, plugins *catalog.Catalog) {
-	mux.HandleFunc("/ping", pingHandlerFunc(cfg, plugins))
+	// Load configured sis plugin and create the grpc client
+	sisPlugin := plugins.LookupByTypeAndName("SystemInformationService", "sis")
+	sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPlugin.ClientConnection())
+
+	mux.HandleFunc("/ping", pingHandlerFunc(cfg, sisClient))
 }
 
 // createStatusServer creates a status http server using the given config
