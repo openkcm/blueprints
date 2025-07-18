@@ -6,8 +6,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openkcm/common-sdk v0.6.0
-	github.com/openkcm/plugin-sdk v0.1.1-0.20250716111218-036bfb576383
+	github.com/openkcm/common-sdk v0.6.1
+	github.com/openkcm/plugin-sdk v0.2.0
 	github.com/samber/oops v1.19.0
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.37.0
@@ -26,7 +26,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/hashicorp/go-plugin v1.6.3 // indirect
@@ -77,6 +77,6 @@ require (
 	golang.org/x/text v0.26.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
-	google.golang.org/grpc v1.73.0 // indirect
+	google.golang.org/grpc v1.74.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
