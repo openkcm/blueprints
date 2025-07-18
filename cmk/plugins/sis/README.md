@@ -33,8 +33,8 @@ Dummy service using sis-plugin [application](./cmd/main.go).
 
 ## Usage source code
 
-Loading all plugins given through config.yaml file as configuration
-```glang
+Loading plugins given the configuration
+```golang
 	plugins, err := catalog.Load(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
@@ -44,7 +44,7 @@ Loading all plugins given through config.yaml file as configuration
 	}
 ```
 
-Closing all plugins as resources
+Closing all plugins as resources whenever the application is shutdown
 ```golang
 	err := plugins.Close()
 	if err != nil {
