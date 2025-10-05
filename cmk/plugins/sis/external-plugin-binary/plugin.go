@@ -2,18 +2,20 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/hashicorp/go-hclog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
+	slogctx "github.com/veqryn/slog-context"
 	"gopkg.in/yaml.v3"
+
+	"github.com/openkcm/plugin-sdk/pkg/hclog2slog"
 )
 
 type Plugin struct {
 	configv1.UnsafeConfigServer
 	systeminformationv1.UnimplementedSystemInformationServiceServer
-
-	logger hclog.Logger
 }
 
 var (
@@ -27,12 +29,12 @@ func NewPlugin() *Plugin {
 
 // SetLogger method is called whenever the plugin start and giving the logger of host application
 func (p *Plugin) SetLogger(logger hclog.Logger) {
-	p.logger = logger.Named("plugin.sis")
+	slog.SetDefault(hclog2slog.New(logger.Named("plugin.sis")))
 }
 
 // Configure configures the plugin with the given configuration
-func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error) {
-	p.logger.Info("Configuring plugin")
+func (p *Plugin) Configure(ctx context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error) {
+	slogctx.Info(ctx, "Configuring plugin")
 
 	cfg := &Config{}
 	err := yaml.Unmarshal([]byte(req.GetYamlConfiguration()), cfg)
@@ -47,9 +49,9 @@ func (p *Plugin) Configure(_ context.Context, req *configv1.ConfigureRequest) (*
 }
 
 // Get Plugin method/operation
-func (p *Plugin) Get(_ context.Context, req *systeminformationv1.GetRequest) (*systeminformationv1.GetResponse, error) {
+func (p *Plugin) Get(ctx context.Context, req *systeminformationv1.GetRequest) (*systeminformationv1.GetResponse, error) {
 
-	p.logger.Debug("SIS Get called", "req", req.GetId())
+	slogctx.Debug(ctx, "SIS Get called", "req", req.GetId())
 
 	//TODO: Business logic here
 
