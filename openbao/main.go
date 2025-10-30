@@ -375,6 +375,32 @@ func rotateTransitKey(client *baoapi.Client, transitPath, keyName string) error 
 	return nil
 }
 
+// Get transit key metadata/info
+func getTransitKeyInfo(client *baoapi.Client, transitPath, keyName string) (map[string]any, error) {
+	if err := ensureTransitMounted(client, transitPath); err != nil {
+		return nil, err
+	}
+	req := client.NewRequest("GET", fmt.Sprintf("/v1/%s/keys/%s", strings.TrimPrefix(transitPath, "/"), keyName))
+	resp, err := client.RawRequest(req) //nolint:staticcheck
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == 404 {
+		return nil, statusError("get key info (not found)", resp)
+	}
+	if resp.StatusCode >= 300 {
+		return nil, statusError("get key info", resp)
+	}
+	var raw map[string]any
+	_ = json.NewDecoder(resp.Body).Decode(&raw)
+	// Vault/OpenBao transit key read returns {data:{...meta...}}
+	if data, ok := raw["data"].(map[string]any); ok {
+		return data, nil
+	}
+	return raw, nil
+}
+
 // KV (v2) secret engine operations
 func enableKVIfNeeded(client *baoapi.Client, mount string) error {
 	// Check mounts
@@ -781,6 +807,17 @@ func (s *apiServer) handleKeysItem(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)
+	case http.MethodGet:
+		if rotate { // GET /rotate not supported
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		info, err := getTransitKeyInfo(c, s.transitPath, name)
+		if err != nil {
+			writeErr(w, http.StatusBadGateway, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"namespace": ns, "name": name, "info": info})
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}

@@ -174,3 +174,38 @@ bao-clean: bao-stop
 # Convenience alias
 .PHONY: test
 test: bao-test-all
+
+# ---------------------------------------------------------------------------
+# Kubernetes REST API test via port-forward
+# Requires: kubectl context pointing at cluster with deployment & service from deploy.yaml
+# Performs: port-forward, then namespace + transit key lifecycle through REST endpoints
+# ---------------------------------------------------------------------------
+.PHONY: bao-k8s-rest-test
+bao-k8s-rest-test:
+	@echo "[k8s-rest-test] Starting port-forward to service/openbao-ns-key-manager";
+	@set -e; \
+	  NS=openbao; SVC=openbao-ns-key-manager; LOCAL_PORT=$$(bash -c 'for p in $$(seq 18080 18120); do lsof -i :$$p >/dev/null 2>&1 || { echo $$p; break; }; done'); \
+	  if [ -z "$$LOCAL_PORT" ]; then echo "[k8s-rest-test] No free local port in range"; exit 1; fi; \
+	  echo "[k8s-rest-test] Using local port $$LOCAL_PORT"; \
+	  ( kubectl -n $$NS port-forward svc/$$SVC $$LOCAL_PORT:80 > .pf.log 2>&1 & echo $$! > .pf.pid ); \
+	  trap 'STATUS=$$?; echo "[k8s-rest-test] Cleanup (status=$$STATUS)"; if [ -f .pf.pid ]; then kill $$(cat .pf.pid) 2>/dev/null || true; rm -f .pf.pid .pf.log; fi; exit $$STATUS' EXIT INT TERM; \
+	  echo "[k8s-rest-test] Waiting for /health"; \
+	  for i in $$(seq 1 40); do curl -s http://127.0.0.1:$$LOCAL_PORT/health >/dev/null 2>&1 && break; sleep 1; done; \
+	  curl -s --fail http://127.0.0.1:$$LOCAL_PORT/health | jq -e '.status == "ok"' >/dev/null || { echo "[k8s-rest-test] Health failed"; exit 1; }; \
+	  NS_NAME=temp-$$RANDOM; echo "[k8s-rest-test] Namespace $$NS_NAME"; \
+	  echo '{"name":"'$$NS_NAME'"}' | curl -s --fail -X POST -H 'Content-Type: application/json' --data @- http://127.0.0.1:$$LOCAL_PORT/namespaces | jq '.'; \
+	  echo "[k8s-rest-test] Ensuring transit key example"; \
+	  curl -s -X POST -H 'Content-Type: application/json' -d '{"name":"example","type":"aes256-gcm96"}' http://127.0.0.1:$$LOCAL_PORT/ensure-key-all-namespaces | jq '.'; \
+	  echo "[k8s-rest-test] Creating key in namespace"; \
+	  curl -s --fail -X POST -H 'Content-Type: application/json' -d '{"namespace":"'$$NS_NAME'","name":"demo","type":"aes256-gcm96"}' http://127.0.0.1:$$LOCAL_PORT/keys | jq '.'; \
+	  echo "[k8s-rest-test] Listing keys in namespace"; \
+	  curl -s --fail 'http://127.0.0.1:'$$LOCAL_PORT'/keys?namespace='$$NS_NAME | jq '.'; \
+	  echo "[k8s-rest-test] Fetching key metadata"; \
+	  curl -s --fail http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/demo | jq '.'; \
+	  echo "[k8s-rest-test] Rotating key"; \
+	  curl -s --fail -X POST http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/demo/rotate | jq '.'; \
+	  echo "[k8s-rest-test] Deleting key"; \
+	  curl -s --fail -X DELETE http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/demo | jq '.'; \
+	  echo "[k8s-rest-test] Deleting namespace"; \
+	  curl -s --fail -X DELETE http://127.0.0.1:$$LOCAL_PORT/namespaces/$$NS_NAME | jq '.'; \
+	  echo "[k8s-rest-test] SUCCESS";
