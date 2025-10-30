@@ -241,14 +241,20 @@ func deleteNamespace(client *baoapi.Client, name string) error {
 }
 
 func listNamespaces(client *baoapi.Client) ([]string, error) {
-	// Attempt list with possible list=true (some implementations require it)
-	req := client.NewRequest("GET", "/v1/sys/namespaces?list=true")
+	// Properly set list=true via query params (avoid encoding '?' in path)
+	req := client.NewRequest("GET", "/v1/sys/namespaces")
+	if req.Params != nil { // Vault/OpenBao client sets this map
+		req.Params.Set("list", "true")
+	}
 	resp, err := client.RawRequest(req) //nolint:staticcheck
 	if err != nil {
+		// Treat unsupported path / enterprise-only errors as single root namespace
+		if strings.Contains(err.Error(), "unsupported path") || strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "permission denied") {
+			return []string{""}, nil
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
-	// If namespaces feature not enabled, treat root only
 	if resp.StatusCode == 404 || resp.StatusCode == 405 { // unsupported operation
 		return []string{""}, nil
 	}
@@ -281,9 +287,16 @@ func listNamespaces(client *baoapi.Client) ([]string, error) {
 func listTransitKeys(client *baoapi.Client, transitPath string) ([]string, error) {
 	// Ensure transit engine is mounted before listing
 	_ = ensureTransitMounted(client, transitPath)
-	req := client.NewRequest("GET", fmt.Sprintf("/v1/%s/keys?list=true", strings.TrimPrefix(transitPath, "/")))
+	req := client.NewRequest("GET", fmt.Sprintf("/v1/%s/keys", strings.TrimPrefix(transitPath, "/")))
+	if req.Params != nil {
+		req.Params.Set("list", "true")
+	}
 	resp, err := client.RawRequest(req) //nolint:staticcheck
 	if err != nil {
+		// For missing mount or unsupported path, return empty list
+		if strings.Contains(err.Error(), "unsupported path") || strings.Contains(err.Error(), "404") {
+			return []string{}, nil
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
