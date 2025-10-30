@@ -200,6 +200,8 @@ bao-k8s-rest-test:
 	  curl -s --fail -X POST -H 'Content-Type: application/json' -d '{"namespace":"'$$NS_NAME'","name":"demo","type":"aes256-gcm96"}' http://127.0.0.1:$$LOCAL_PORT/keys | jq '.'; \
 	  echo "[k8s-rest-test] Listing keys in namespace"; \
 	  curl -s --fail 'http://127.0.0.1:'$$LOCAL_PORT'/keys?namespace='$$NS_NAME | jq '.'; \
+	  echo "[k8s-rest-test] Listing keys across all namespaces"; \
+	  curl -s --fail http://127.0.0.1:$$LOCAL_PORT/keys | jq '.'; \
 	  echo "[k8s-rest-test] Fetching key metadata"; \
 	  curl -s --fail http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/demo | jq '.'; \
 	  echo "[k8s-rest-test] Rotating key"; \
