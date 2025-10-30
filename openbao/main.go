@@ -326,7 +326,8 @@ func createTransitKey(client *baoapi.Client, transitPath, keyName, keyType strin
 		return err
 	}
 	req := client.NewRequest("POST", fmt.Sprintf("/v1/%s/keys/%s", strings.TrimPrefix(transitPath, "/"), keyName))
-	body, _ := json.Marshal(map[string]string{"type": keyType})
+	// Include deletion_allowed in create body (if server ignores here we'll set via config endpoint next)
+	body, _ := json.Marshal(map[string]any{"type": keyType, "deletion_allowed": true})
 	req.Body = bytes.NewBuffer(body)
 	resp, err := client.RawRequest(req) //nolint:staticcheck
 	if err != nil {
@@ -336,9 +337,9 @@ func createTransitKey(client *baoapi.Client, transitPath, keyName, keyType strin
 	if resp.StatusCode >= 300 {
 		return statusError("create key", resp)
 	}
-	// Enable deletion of the key (transit requires delete_allowed=true via config before deletion)
-	if err := configureTransitKey(client, transitPath, keyName, map[string]any{"delete_allowed": true}); err != nil {
-		log.Printf("warn: set delete_allowed for key %s failed: %v", keyName, err)
+	// Enable deletion of the key (transit requires deletion_allowed=true via config before deletion)
+	if err := configureTransitKey(client, transitPath, keyName, map[string]any{"deletion_allowed": true}); err != nil {
+		log.Printf("warn: set deletion_allowed for key %s failed: %v", keyName, err)
 	}
 	return nil
 }
@@ -750,7 +751,7 @@ func (s *apiServer) handleKeysCollection(w http.ResponseWriter, r *http.Request)
 			Namespace   string `json:"namespace"`
 			Name        string `json:"name"`
 			Type        string `json:"type"`
-			AllowDelete *bool  `json:"allow_delete"`
+			AllowDelete *bool `json:"allow_delete"` // maps to deletion_allowed
 		}
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			writeErr(w, http.StatusBadRequest, fmt.Errorf("invalid json: %w", err))
@@ -775,8 +776,8 @@ func (s *apiServer) handleKeysCollection(w http.ResponseWriter, r *http.Request)
 		}
 		// Optionally override delete_allowed if provided
 		if payload.AllowDelete != nil {
-			if err := configureTransitKey(c, s.transitPath, payload.Name, map[string]any{"delete_allowed": *payload.AllowDelete}); err != nil {
-				log.Printf("warn: override delete_allowed for %s failed: %v", payload.Name, err)
+			if err := configureTransitKey(c, s.transitPath, payload.Name, map[string]any{"deletion_allowed": *payload.AllowDelete}); err != nil {
+				log.Printf("warn: override deletion_allowed for %s failed: %v", payload.Name, err)
 			}
 		}
 		writeJSON(w, http.StatusCreated, map[string]string{"created": payload.Name, "namespace": payload.Namespace})
