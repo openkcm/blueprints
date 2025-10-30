@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: tool
-          image: ghcr.io/openkcm/openbao-tool:ef5882f6db07288f9cbdb62e485bc72c7cddfed2
+          image: ghcr.io/openkcm/openbao-tool:c91002fea7d8739d86a3d8d1d3d78e6e07198842
           env:
             - name: OPENBAO_ADDR
               value: https://openbao.openbao.svc:8200
@@ -107,7 +107,7 @@ spec:
     spec:
       containers:
         - name: tool
-          image: ghcr.io/openkcm/openbao-tool:ef5882f6db07288f9cbdb62e485bc72c7cddfed2
+          image: ghcr.io/openkcm/openbao-tool:c91002fea7d8739d86a3d8d1d3d78e6e07198842
           env:
             - name: OPENBAO_ADDR
               value: https://openbao.openbao.svc:8200
