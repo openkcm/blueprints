@@ -747,10 +747,10 @@ func (s *apiServer) handleKeysCollection(w http.ResponseWriter, r *http.Request)
 		writeJSON(w, http.StatusOK, map[string]any{"namespace": ns, "keys": keys})
 	case http.MethodPost:
 		var payload struct {
-			Namespace string `json:"namespace"`
-			Name      string `json:"name"`
-			Type      string `json:"type"`
-			AllowDelete *bool `json:"allow_delete"`
+			Namespace   string `json:"namespace"`
+			Name        string `json:"name"`
+			Type        string `json:"type"`
+			AllowDelete *bool  `json:"allow_delete"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			writeErr(w, http.StatusBadRequest, fmt.Errorf("invalid json: %w", err))
