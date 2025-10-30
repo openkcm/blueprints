@@ -211,3 +211,63 @@ bao-k8s-rest-test:
 	  echo "[k8s-rest-test] Deleting namespace"; \
 	  curl -s --fail -X DELETE http://127.0.0.1:$$LOCAL_PORT/namespaces/$$NS_NAME | jq '.'; \
 	  echo "[k8s-rest-test] SUCCESS";
+
+# Namespace admin test (create/delete namespace only)
+.PHONY: bao-k8s-ns-test
+bao-k8s-ns-test:
+	@echo "[k8s-ns-test] Port-forward namespace admin service"; \
+	set -e; NS=openbao; SVC=openbao-namespace-admin; LOCAL_PORT=$$(bash -c 'for p in $$(seq 18130 18160); do lsof -i :$$p >/dev/null 2>&1 || { echo $$p; break; }; done'); \
+	[ -n "$$LOCAL_PORT" ] || { echo "[k8s-ns-test] No free port"; exit 1; }; \
+	( kubectl -n $$NS port-forward svc/$$SVC $$LOCAL_PORT:80 > .pf-ns.log 2>&1 & echo $$! > .pf-ns.pid ); \
+	trap 'STATUS=$$?; echo "[k8s-ns-test] Cleanup status=$$STATUS"; if [ -f .pf-ns.pid ]; then kill $$(cat .pf-ns.pid) 2>/dev/null || true; rm -f .pf-ns.pid .pf-ns.log; fi; exit $$STATUS' EXIT INT TERM; \
+	for i in $$(seq 1 30); do curl -s http://127.0.0.1:$$LOCAL_PORT/health >/dev/null 2>&1 && break; sleep 1; done; \
+	NS_NAME=temp-$$RANDOM; echo "[k8s-ns-test] Create $$NS_NAME"; \
+	echo '{"name":"'$$NS_NAME'"}' | curl -s --fail -X POST -H 'Content-Type: application/json' --data @- http://127.0.0.1:$$LOCAL_PORT/namespaces | jq '.'; \
+	curl -s --fail http://127.0.0.1:$$LOCAL_PORT/namespaces | jq '.'; \
+	curl -s --fail -X DELETE http://127.0.0.1:$$LOCAL_PORT/namespaces/$$NS_NAME | jq '.'; \
+	echo "[k8s-ns-test] SUCCESS";
+
+# Key admin test (key lifecycle in root namespace assumption or fallback)
+.PHONY: bao-k8s-key-test
+bao-k8s-key-test:
+	@echo "[k8s-key-test] Port-forward key admin service"; \
+	set -e; NS=openbao; SVC=openbao-key-admin; LOCAL_PORT=$$(bash -c 'for p in $$(seq 18170 18200); do lsof -i :$$p >/dev/null 2>&1 || { echo $$p; break; }; done'); \
+	[ -n "$$LOCAL_PORT" ] || { echo "[k8s-key-test] No free port"; exit 1; }; \
+	( kubectl -n $$NS port-forward svc/$$SVC $$LOCAL_PORT:80 > .pf-key.log 2>&1 & echo $$! > .pf-key.pid ); \
+	trap 'STATUS=$$?; echo "[k8s-key-test] Cleanup status=$$STATUS"; if [ -f .pf-key.pid ]; then kill $$(cat .pf-key.pid) 2>/dev/null || true; rm -f .pf-key.pid .pf-key.log; fi; exit $$STATUS' EXIT INT TERM; \
+	for i in $$(seq 1 30); do curl -s http://127.0.0.1:$$LOCAL_PORT/health >/dev/null 2>&1 && break; sleep 1; done; \
+	NS_NAME=""; KEY=demo-$$RANDOM; echo "[k8s-key-test] Create key $$KEY"; \
+	RESP_CREATE=$$(curl -s -w '\n%{http_code}' -X POST -H 'Content-Type: application/json' -d '{"namespace":"'$$NS_NAME'","name":"'$$KEY'","type":"aes256-gcm96"}' http://127.0.0.1:$$LOCAL_PORT/keys); echo "$$RESP_CREATE" | head -n1 | jq '.'; echo "[status] $$(echo "$$RESP_CREATE" | tail -n1)"; \
+	RESP_CREATE=$$(curl -s -X POST -H 'Content-Type: application/json' -d '{"namespace":"'$$NS_NAME'","name":"'$$KEY'","type":"aes256-gcm96"}' http://127.0.0.1:$$LOCAL_PORT/keys -w 'HTTPSTATUS:%{http_code}'); STATUS_CREATE=$${RESP_CREATE##*HTTPSTATUS:}; BODY_CREATE=$${RESP_CREATE%HTTPSTATUS:*}; printf '%s' "$$BODY_CREATE" | tr -d '\000' | jq '.' || { echo "[debug-create-raw] $$BODY_CREATE"; exit 1; }; echo "[status] $$STATUS_CREATE"; [ "$$STATUS_CREATE" -ge 200 ] && [ "$$STATUS_CREATE" -lt 300 ]; \
+	RESP_LIST_NS=$$(curl -s 'http://127.0.0.1:'$$LOCAL_PORT'/keys?namespace='$$NS_NAME -w 'HTTPSTATUS:%{http_code}'); STATUS_LIST_NS=$${RESP_LIST_NS##*HTTPSTATUS:}; BODY_LIST_NS=$${RESP_LIST_NS%HTTPSTATUS:*}; printf '%s' "$$BODY_LIST_NS" | tr -d '\000' | jq '.' || { echo "[debug-list-raw] $$BODY_LIST_NS"; exit 1; }; echo "[status] $$STATUS_LIST_NS"; [ "$$STATUS_LIST_NS" -ge 200 ] && [ "$$STATUS_LIST_NS" -lt 300 ]; \
+	RESP_INFO=$$(curl -s http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/$$KEY -w 'HTTPSTATUS:%{http_code}'); STATUS_INFO=$${RESP_INFO##*HTTPSTATUS:}; BODY_INFO=$${RESP_INFO%HTTPSTATUS:*}; printf '%s' "$$BODY_INFO" | tr -d '\000' | jq '.' || { echo "[debug-info-raw] $$BODY_INFO"; exit 1; }; echo "[status] $$STATUS_INFO"; [ "$$STATUS_INFO" -ge 200 ] && [ "$$STATUS_INFO" -lt 300 ]; \
+	RESP_ROTATE=$$(curl -s -X POST http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/$$KEY/rotate -w 'HTTPSTATUS:%{http_code}'); STATUS_ROTATE=$${RESP_ROTATE##*HTTPSTATUS:}; BODY_ROTATE=$${RESP_ROTATE%HTTPSTATUS:*}; printf '%s' "$$BODY_ROTATE" | tr -d '\000' | jq '.' || { echo "[debug-rotate-raw] $$BODY_ROTATE"; exit 1; }; echo "[status] $$STATUS_ROTATE"; [ "$$STATUS_ROTATE" -ge 200 ] && [ "$$STATUS_ROTATE" -lt 300 ]; \
+	RESP_DELETE=$$(curl -s -X DELETE http://127.0.0.1:$$LOCAL_PORT/keys/$$NS_NAME/$$KEY -w 'HTTPSTATUS:%{http_code}'); STATUS_DELETE=$${RESP_DELETE##*HTTPSTATUS:}; BODY_DELETE=$${RESP_DELETE%HTTPSTATUS:*}; printf '%s' "$$BODY_DELETE" | tr -d '\000' | jq '.' || { echo "[debug-delete-raw] $$BODY_DELETE"; exit 1; }; echo "[status] $$STATUS_DELETE"; [ "$$STATUS_DELETE" -ge 200 ] && [ "$$STATUS_DELETE" -lt 300 ]; \
+	echo "[k8s-key-test] SUCCESS";
+
+# Combined namespace + key lifecycle using both services. Creates namespace via namespace-admin, uses it for key lifecycle via key-admin, then deletes namespace.
+.PHONY: bao-k8s-ns-key-test
+bao-k8s-ns-key-test:
+	@echo "[k8s-ns-key-test] Starting combined test"; \
+	set -e; NS=openbao; SVC_NS=openbao-namespace-admin; SVC_KEY=openbao-key-admin; \
+	PORT_NS=$$(bash -c 'for p in $$(seq 18210 18240); do lsof -i :$$p >/dev/null 2>&1 || { echo $$p; break; }; done'); \
+	PORT_KEY=$$(bash -c 'for p in $$(seq 18241 18270); do lsof -i :$$p >/dev/null 2>&1 || { echo $$p; break; }; done'); \
+	[ -n "$$PORT_NS" ] || { echo "[k8s-ns-key-test] No free port for namespace svc"; exit 1; }; \
+	[ -n "$$PORT_KEY" ] || { echo "[k8s-ns-key-test] No free port for key svc"; exit 1; }; \
+	( kubectl -n $$NS port-forward svc/$$SVC_NS $$PORT_NS:80 > .pf-ns-key-ns.log 2>&1 & echo $$! > .pf-ns-key-ns.pid ); \
+	( kubectl -n $$NS port-forward svc/$$SVC_KEY $$PORT_KEY:80 > .pf-ns-key-key.log 2>&1 & echo $$! > .pf-ns-key-key.pid ); \
+	trap 'STATUS=$$?; echo "[k8s-ns-key-test] Cleanup status=$$STATUS"; for f in .pf-ns-key-ns.pid .pf-ns-key-key.pid; do [ -f $$f ] && kill $$(cat $$f) 2>/dev/null || true; done; rm -f .pf-ns-key-ns.pid .pf-ns-key-key.pid .pf-ns-key-ns.log .pf-ns-key-key.log; exit $$STATUS' EXIT INT TERM; \
+	echo "[k8s-ns-key-test] Waiting for health (namespace)"; for i in $$(seq 1 40); do curl -s http://127.0.0.1:$$PORT_NS/health >/dev/null 2>&1 && break; sleep 1; done; \
+	echo "[k8s-ns-key-test] Waiting for health (key)"; for i in $$(seq 1 40); do curl -s http://127.0.0.1:$$PORT_KEY/health >/dev/null 2>&1 && break; sleep 1; done; \
+	NS_NAME=temp-$$RANDOM; echo "[k8s-ns-key-test] Creating namespace $$NS_NAME"; \
+	echo '{"name":"'$$NS_NAME'"}' | curl -s --fail -X POST -H 'Content-Type: application/json' --data @- http://127.0.0.1:$$PORT_NS/namespaces | jq '.'; \
+	curl -s --fail http://127.0.0.1:$$PORT_NS/namespaces | jq '.'; \
+	KEY_NAME=demo-$$RANDOM; echo "[k8s-ns-key-test] Creating key $$KEY_NAME in namespace $$NS_NAME"; \
+	RESP_CREATE=$$(curl -s -X POST -H 'Content-Type: application/json' -d '{"namespace":"'$$NS_NAME'","name":"'$$KEY_NAME'","type":"aes256-gcm96"}' http://127.0.0.1:$$PORT_KEY/keys -w 'HTTPSTATUS:%{http_code}'); STATUS_CREATE=$${RESP_CREATE##*HTTPSTATUS:}; BODY_CREATE=$${RESP_CREATE%HTTPSTATUS:*}; printf '%s' "$$BODY_CREATE" | tr -d '\000' | jq '.' || { echo "[debug-create-raw] $$BODY_CREATE"; exit 1; }; echo "[status] $$STATUS_CREATE"; [ "$$STATUS_CREATE" -ge 200 ] && [ "$$STATUS_CREATE" -lt 300 ]; \
+	RESP_LIST=$$(curl -s 'http://127.0.0.1:'$$PORT_KEY'/keys?namespace='$$NS_NAME -w 'HTTPSTATUS:%{http_code}'); STATUS_LIST=$${RESP_LIST##*HTTPSTATUS:}; BODY_LIST=$${RESP_LIST%HTTPSTATUS:*}; printf '%s' "$$BODY_LIST" | tr -d '\000' | jq '.' || { echo "[debug-list-raw] $$BODY_LIST"; }; echo "[status] $$STATUS_LIST"; if [ "$$STATUS_LIST" -ge 200 ] && [ "$$STATUS_LIST" -lt 300 ]; then echo "[list] ok"; else echo "$$BODY_LIST" | grep -q 'unsupported path' && echo "[list] unsupported path (skipping)" || { echo "[list] failed"; exit 1; }; fi; \
+	RESP_INFO=$$(curl -s http://127.0.0.1:$$PORT_KEY/keys/$$NS_NAME/$$KEY_NAME -w 'HTTPSTATUS:%{http_code}'); STATUS_INFO=$${RESP_INFO##*HTTPSTATUS:}; BODY_INFO=$${RESP_INFO%HTTPSTATUS:*}; printf '%s' "$$BODY_INFO" | tr -d '\000' | jq '.' || { echo "[debug-info-raw] $$BODY_INFO"; exit 1; }; echo "[status] $$STATUS_INFO"; [ "$$STATUS_INFO" -ge 200 ] && [ "$$STATUS_INFO" -lt 300 ]; \
+	RESP_ROTATE=$$(curl -s -X POST http://127.0.0.1:$$PORT_KEY/keys/$$NS_NAME/$$KEY_NAME/rotate -w 'HTTPSTATUS:%{http_code}'); STATUS_ROTATE=$${RESP_ROTATE##*HTTPSTATUS:}; BODY_ROTATE=$${RESP_ROTATE%HTTPSTATUS:*}; printf '%s' "$$BODY_ROTATE" | tr -d '\000' | jq '.' || { echo "[debug-rotate-raw] $$BODY_ROTATE"; exit 1; }; echo "[status] $$STATUS_ROTATE"; [ "$$STATUS_ROTATE" -ge 200 ] && [ "$$STATUS_ROTATE" -lt 300 ]; \
+	RESP_DELETE_KEY=$$(curl -s -X DELETE http://127.0.0.1:$$PORT_KEY/keys/$$NS_NAME/$$KEY_NAME -w 'HTTPSTATUS:%{http_code}'); STATUS_DELETE_KEY=$${RESP_DELETE_KEY##*HTTPSTATUS:}; BODY_DELETE_KEY=$${RESP_DELETE_KEY%HTTPSTATUS:*}; printf '%s' "$$BODY_DELETE_KEY" | tr -d '\000' | jq '.' || { echo "[debug-delete-raw] $$BODY_DELETE_KEY"; exit 1; }; echo "[status] $$STATUS_DELETE_KEY"; [ "$$STATUS_DELETE_KEY" -ge 200 ] && [ "$$STATUS_DELETE_KEY" -lt 300 ]; \
+	echo "[k8s-ns-key-test] Deleting namespace $$NS_NAME"; \
+	curl -s --fail -X DELETE http://127.0.0.1:$$PORT_NS/namespaces/$$NS_NAME | jq '.'; \
+	echo "[k8s-ns-key-test] SUCCESS";

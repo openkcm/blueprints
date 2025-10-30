@@ -336,6 +336,10 @@ func createTransitKey(client *baoapi.Client, transitPath, keyName, keyType strin
 	if resp.StatusCode >= 300 {
 		return statusError("create key", resp)
 	}
+	// Enable deletion of the key (transit requires delete_allowed=true via config before deletion)
+	if err := configureTransitKey(client, transitPath, keyName, map[string]any{"delete_allowed": true}); err != nil {
+		log.Printf("warn: set delete_allowed for key %s failed: %v", keyName, err)
+	}
 	return nil
 }
 
@@ -384,6 +388,25 @@ func rotateTransitKey(client *baoapi.Client, transitPath, keyName string) error 
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		return statusError("rotate key", resp)
+	}
+	return nil
+}
+
+// configureTransitKey updates key configuration (e.g., delete_allowed) after creation.
+func configureTransitKey(client *baoapi.Client, transitPath, keyName string, cfg map[string]any) error {
+	if err := ensureTransitMounted(client, transitPath); err != nil {
+		return err
+	}
+	req := client.NewRequest("POST", fmt.Sprintf("/v1/%s/keys/%s/config", strings.TrimPrefix(transitPath, "/"), keyName))
+	body, _ := json.Marshal(cfg)
+	req.Body = bytes.NewBuffer(body)
+	resp, err := client.RawRequest(req) //nolint:staticcheck
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return statusError("configure key", resp)
 	}
 	return nil
 }
@@ -727,13 +750,15 @@ func (s *apiServer) handleKeysCollection(w http.ResponseWriter, r *http.Request)
 			Namespace string `json:"namespace"`
 			Name      string `json:"name"`
 			Type      string `json:"type"`
+			AllowDelete *bool `json:"allow_delete"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			writeErr(w, http.StatusBadRequest, fmt.Errorf("invalid json: %w", err))
 			return
 		}
-		if payload.Namespace == "" || payload.Name == "" {
-			writeErr(w, http.StatusBadRequest, fmt.Errorf("namespace and name required"))
+		// Allow empty namespace to target root namespace
+		if payload.Name == "" {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("name required"))
 			return
 		}
 		if payload.Type == "" {
@@ -747,6 +772,12 @@ func (s *apiServer) handleKeysCollection(w http.ResponseWriter, r *http.Request)
 		if err := createTransitKey(c, s.transitPath, payload.Name, payload.Type); err != nil {
 			writeErr(w, http.StatusBadGateway, err)
 			return
+		}
+		// Optionally override delete_allowed if provided
+		if payload.AllowDelete != nil {
+			if err := configureTransitKey(c, s.transitPath, payload.Name, map[string]any{"delete_allowed": *payload.AllowDelete}); err != nil {
+				log.Printf("warn: override delete_allowed for %s failed: %v", payload.Name, err)
+			}
 		}
 		writeJSON(w, http.StatusCreated, map[string]string{"created": payload.Name, "namespace": payload.Namespace})
 	default:
