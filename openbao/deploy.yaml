@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openbao-tools
+  name: openbao
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openbao-ns-key-manager
-  namespace: openbao-tools
+  namespace: openbao
   labels:
     app: openbao-ns-key-manager
 spec:
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: tool
-          image: ghcr.io/openkcm/images/openbao-tool:latest
+          image: ghcr.io/openkcm/openbao-tool:8897f8bb8fe77108d8b8cef3aede08854f2fa183
           env:
             - name: OPENBAO_ADDR
               value: https://openbao.openbao.svc:8200
@@ -33,23 +33,26 @@ spec:
             - name: OPENBAO_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: openbao-root-token
-                  key: token
+                  name: openbao-root
+                  key: root-token
             - name: OPENBAO_CA_CERT
-              value: /certs/ca.pem
+              value: /tls/tls.crt
             - name: OPENBAO_CLIENT_CERT
-              value: /certs/client.crt
+              value: /admin/tls.crt
             - name: OPENBAO_CLIENT_KEY
-              value: /certs/client.key
+              value: /admin/tls.key
             - name: OPENBAO_SERVER_MODE
               value: "1"
           ports:
             - containerPort: 8080
               name: http
           volumeMounts:
-            - name: certs
-              mountPath: /certs
-              readOnly: true
+          - mountPath: /tls
+            name: tls
+            readOnly: true
+          - mountPath: /admin
+            name: admin-client-cert
+            readOnly: true
           readinessProbe:
             httpGet:
               path: /health
@@ -70,15 +73,26 @@ spec:
               cpu: 200m
               memory: 256Mi
       volumes:
-        - name: certs
-          secret:
-            secretName: openbao-client-mtls
+      - name: tls
+        secret:
+          defaultMode: 420
+          secretName: openbao-tls
+      - name: client-ca
+        secret:
+          defaultMode: 420
+          secretName: openbao-client-ca-secret
+      - name: admin-client-cert
+        secret:
+          defaultMode: 420
+          secretName: openbao-admin-cert
+      - emptyDir: {}
+        name: home
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: openbao-ns-key-manager
-  namespace: openbao-tools
+  namespace: openbao
 spec:
   selector:
     app: openbao-ns-key-manager
@@ -86,49 +100,3 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: openbao-ensure-key
-  namespace: openbao-tools
-spec:
-  schedule: "0 * * * *"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          restartPolicy: OnFailure
-          containers:
-            - name: ensure
-              image: ghcr.io/openkcm/openbao-tool:latest
-              args:
-                - --op=ensure-key-all-namespaces
-                - --addr=$(OPENBAO_ADDR)
-                - --key-name=$(OPENBAO_KEY_NAME)
-              env:
-                - name: OPENBAO_ADDR
-                  value: https://openbao.openbao.svc:8200
-                - name: OPENBAO_TRANSIT_PATH
-                  value: transit
-                - name: OPENBAO_KEY_NAME
-                  value: example
-                - name: OPENBAO_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: openbao-root-token
-                      key: token
-                - name: OPENBAO_CA_CERT
-                  value: /certs/ca.pem
-                - name: OPENBAO_CLIENT_CERT
-                  value: /certs/client.crt
-                - name: OPENBAO_CLIENT_KEY
-                  value: /certs/client.key
-              volumeMounts:
-                - name: certs
-                  mountPath: /certs
-                  readOnly: true
-          volumes:
-            - name: certs
-              secret:
-                secretName: openbao-client-mtls

@@ -241,12 +241,17 @@ func deleteNamespace(client *baoapi.Client, name string) error {
 }
 
 func listNamespaces(client *baoapi.Client) ([]string, error) {
-	req := client.NewRequest("GET", "/v1/sys/namespaces")
+	// Attempt list with possible list=true (some implementations require it)
+	req := client.NewRequest("GET", "/v1/sys/namespaces?list=true")
 	resp, err := client.RawRequest(req) //nolint:staticcheck
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	// If namespaces feature not enabled, treat root only
+	if resp.StatusCode == 404 || resp.StatusCode == 405 { // unsupported operation
+		return []string{""}, nil
+	}
 	if resp.StatusCode >= 300 {
 		return nil, statusError("list namespaces", resp)
 	}
@@ -274,6 +279,8 @@ func listNamespaces(client *baoapi.Client) ([]string, error) {
 
 // Transit key operations
 func listTransitKeys(client *baoapi.Client, transitPath string) ([]string, error) {
+	// Ensure transit engine is mounted before listing
+	_ = ensureTransitMounted(client, transitPath)
 	req := client.NewRequest("GET", fmt.Sprintf("/v1/%s/keys?list=true", strings.TrimPrefix(transitPath, "/")))
 	resp, err := client.RawRequest(req) //nolint:staticcheck
 	if err != nil {
@@ -302,6 +309,9 @@ func listTransitKeys(client *baoapi.Client, transitPath string) ([]string, error
 }
 
 func createTransitKey(client *baoapi.Client, transitPath, keyName, keyType string) error {
+	if err := ensureTransitMounted(client, transitPath); err != nil {
+		return err
+	}
 	req := client.NewRequest("POST", fmt.Sprintf("/v1/%s/keys/%s", strings.TrimPrefix(transitPath, "/"), keyName))
 	body, _ := json.Marshal(map[string]string{"type": keyType})
 	req.Body = bytes.NewBuffer(body)
@@ -317,6 +327,9 @@ func createTransitKey(client *baoapi.Client, transitPath, keyName, keyType strin
 }
 
 func ensureTransitKey(client *baoapi.Client, transitPath, keyName, keyType string) error {
+	if err := ensureTransitMounted(client, transitPath); err != nil {
+		return err
+	}
 	keys, err := listTransitKeys(client, transitPath)
 	if err != nil {
 		return err
@@ -330,6 +343,9 @@ func ensureTransitKey(client *baoapi.Client, transitPath, keyName, keyType strin
 }
 
 func deleteTransitKey(client *baoapi.Client, transitPath, keyName string) error {
+	if err := ensureTransitMounted(client, transitPath); err != nil { // delete will still give 404 if key not present
+		return err
+	}
 	req := client.NewRequest("DELETE", fmt.Sprintf("/v1/%s/keys/%s", strings.TrimPrefix(transitPath, "/"), keyName))
 	resp, err := client.RawRequest(req) //nolint:staticcheck
 	if err != nil {
@@ -343,6 +359,9 @@ func deleteTransitKey(client *baoapi.Client, transitPath, keyName string) error 
 }
 
 func rotateTransitKey(client *baoapi.Client, transitPath, keyName string) error {
+	if err := ensureTransitMounted(client, transitPath); err != nil {
+		return err
+	}
 	req := client.NewRequest("POST", fmt.Sprintf("/v1/%s/keys/%s/rotate", strings.TrimPrefix(transitPath, "/"), keyName))
 	req.Body = bytes.NewBufferString("{}")
 	resp, err := client.RawRequest(req) //nolint:staticcheck
@@ -537,6 +556,8 @@ func (s *apiServer) serve(listen string) error {
 	mux.HandleFunc("/keys", s.handleKeysCollection)       // list or create
 	mux.HandleFunc("/keys/", s.handleKeysItem)            // /keys/{namespace}/{name}[(/rotate|)]
 	mux.HandleFunc("/ensure-key-all-namespaces", s.handleEnsureAllNamespaces)
+	mux.HandleFunc("/secrets", s.handleSecretsCollection) // POST write, GET read (requires namespace & name)
+	mux.HandleFunc("/secrets/", s.handleSecretsItem)      // DELETE /secrets/{namespace}/{name}
 
 	srv := &http.Server{Addr: listen, Handler: logMiddleware(mux)}
 	return srv.ListenAndServe()
@@ -694,6 +715,37 @@ func (s *apiServer) handleKeysCollection(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// ensureTransitMounted enables the transit engine at the given path if not already mounted.
+func ensureTransitMounted(client *baoapi.Client, mount string) error {
+	if mount == "" {
+		mount = "transit"
+	}
+	req := client.NewRequest("GET", "/v1/sys/mounts")
+	resp, err := client.RawRequest(req) //nolint:staticcheck
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	var mounts map[string]any
+	_ = json.NewDecoder(resp.Body).Decode(&mounts)
+	pathKey := strings.Trim(mount, "/") + "/"
+	if _, ok := mounts[pathKey]; ok {
+		return nil // already mounted
+	}
+	enableReq := client.NewRequest("POST", fmt.Sprintf("/v1/sys/mounts/%s", strings.TrimPrefix(mount, "/")))
+	body, _ := json.Marshal(map[string]any{"type": "transit"})
+	enableReq.Body = bytes.NewBuffer(body)
+	enableResp, err := client.RawRequest(enableReq) //nolint:staticcheck
+	if err != nil {
+		return err
+	}
+	defer enableResp.Body.Close()
+	if enableResp.StatusCode >= 300 {
+		return statusError("enable transit", enableResp)
+	}
+	return nil
+}
+
 func (s *apiServer) handleKeysItem(w http.ResponseWriter, r *http.Request) {
 	// Expect /keys/{namespace}/{name} or /keys/{namespace}/{name}/rotate
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/keys/"), "/")
@@ -779,6 +831,104 @@ func (s *apiServer) handleEnsureAllNamespaces(w http.ResponseWriter, r *http.Req
 		ensured = append(ensured, ns)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"key": payload.Name, "ensured": ensured, "failed": failed})
+}
+
+// Secrets collection: for simplicity, GET requires namespace & name query params to read one secret.
+// POST writes (upsert) a secret with JSON {namespace,name,data:{k:v}}
+func (s *apiServer) handleSecretsCollection(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ns := r.URL.Query().Get("namespace")
+		name := r.URL.Query().Get("name")
+		mount := r.URL.Query().Get("mount")
+		if mount == "" {
+			mount = "secret"
+		}
+		if ns == "" || name == "" {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("namespace and name query params required"))
+			return
+		}
+		c, err := s.newClient(ns)
+		if err != nil {
+			writeErr(w, http.StatusInternalServerError, err)
+			return
+		}
+		// ensure mount exists (best effort)
+		_ = enableKVIfNeeded(c, mount)
+		m, err := getKVSecret(c, mount, name)
+		if err != nil {
+			writeErr(w, http.StatusBadGateway, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"namespace": ns, "name": name, "data": m})
+	case http.MethodPost:
+		var payload struct {
+			Namespace string            `json:"namespace"`
+			Name      string            `json:"name"`
+			Mount     string            `json:"mount"`
+			Data      map[string]string `json:"data"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("invalid json: %w", err))
+			return
+		}
+		if payload.Namespace == "" || payload.Name == "" {
+			writeErr(w, http.StatusBadRequest, fmt.Errorf("namespace and name required"))
+			return
+		}
+		if payload.Mount == "" {
+			payload.Mount = "secret"
+		}
+		if payload.Data == nil {
+			payload.Data = map[string]string{}
+		}
+		c, err := s.newClient(payload.Namespace)
+		if err != nil {
+			writeErr(w, http.StatusInternalServerError, err)
+			return
+		}
+		if err := enableKVIfNeeded(c, payload.Mount); err != nil {
+			writeErr(w, http.StatusBadGateway, err)
+			return
+		}
+		if err := putKVSecret(c, payload.Mount, payload.Name, payload.Data); err != nil {
+			writeErr(w, http.StatusBadGateway, err)
+			return
+		}
+		writeJSON(w, http.StatusCreated, map[string]any{"written": payload.Name, "namespace": payload.Namespace, "mount": payload.Mount})
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+}
+
+// Secrets item: DELETE /secrets/{namespace}/{name}
+func (s *apiServer) handleSecretsItem(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/secrets/"), "/")
+	if len(parts) < 2 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ns, name := parts[0], parts[1]
+	mount := r.URL.Query().Get("mount")
+	if mount == "" {
+		mount = "secret"
+	}
+	c, err := s.newClient(ns)
+	if err != nil {
+		writeErr(w, http.StatusInternalServerError, err)
+		return
+	}
+	switch r.Method {
+	case http.MethodDelete:
+		_ = enableKVIfNeeded(c, mount) // ignore error; delete may still work
+		if err := deleteKVSecret(c, mount, name); err != nil {
+			writeErr(w, http.StatusBadGateway, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"deleted": name, "namespace": ns})
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
 }
 
 // Middleware & helpers
