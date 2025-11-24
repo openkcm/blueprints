@@ -6,8 +6,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openkcm/common-sdk v1.6.1-0.20251122152320-47e505772c12
-	github.com/openkcm/plugin-sdk v0.9.1-0.20251122152946-a9b0e68a4f6c
+	github.com/openkcm/common-sdk v1.6.1
+	github.com/openkcm/plugin-sdk v0.9.1
 	github.com/samber/oops v1.19.4
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.38.0
