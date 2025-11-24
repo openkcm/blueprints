@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openkcm/common-sdk v1.4.5
+	github.com/openkcm/common-sdk v1.4.7
 	github.com/openkcm/plugin-sdk v0.7.1
 	github.com/samber/oops v1.19.3
 	github.com/veqryn/slog-context v0.8.0
@@ -80,6 +80,6 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250826171959-ef028d996bc1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/grpc v1.75.1 // indirect
+	google.golang.org/grpc v1.76.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )

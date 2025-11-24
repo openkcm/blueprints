@@ -6,9 +6,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openkcm/common-sdk v1.4.5
-	github.com/openkcm/plugin-sdk v0.7.1
-	github.com/samber/oops v1.19.3
+	github.com/openkcm/common-sdk v1.6.1-0.20251122152320-47e505772c12
+	github.com/openkcm/plugin-sdk v0.9.1-0.20251122152946-a9b0e68a4f6c
+	github.com/samber/oops v1.19.4
 	github.com/veqryn/slog-context v0.8.0
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/metric v1.38.0
@@ -21,6 +21,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/davidhoo/jsonpath v1.0.4 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -44,10 +45,10 @@ require (
 	github.com/prometheus/otlptranslator v0.0.2 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
-	github.com/samber/lo v1.51.0 // indirect
+	github.com/samber/lo v1.52.0 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/samber/slog-formatter v1.2.0 // indirect
-	github.com/samber/slog-multi v1.5.0 // indirect
+	github.com/samber/slog-multi v1.6.0 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
@@ -56,7 +57,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/veqryn/slog-context/otel v0.8.0 // indirect
 	github.com/zeebo/errs/v2 v2.0.5 // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/bridges/otelslog v0.13.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.63.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.63.0 // indirect
@@ -75,11 +76,11 @@ require (
 	go.opentelemetry.io/proto/otlp v1.7.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/grpc v1.75.1 // indirect
+	golang.org/x/net v0.46.1-0.20251013234738-63d1a5100f82 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251022142026-3a174f9686a8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect
+	google.golang.org/grpc v1.77.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )

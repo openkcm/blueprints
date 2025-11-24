@@ -16,6 +16,8 @@ import (
 type Plugin struct {
 	configv1.UnsafeConfigServer
 	systeminformationv1.UnimplementedSystemInformationServiceServer
+
+	buildInfo string
 }
 
 var (
@@ -23,8 +25,10 @@ var (
 	_ configv1.ConfigServer                              = (*Plugin)(nil)
 )
 
-func NewPlugin() *Plugin {
-	return &Plugin{}
+func NewPlugin(buildInfo string) *Plugin {
+	return &Plugin{
+		buildInfo: buildInfo,
+	}
 }
 
 // SetLogger method is called whenever the plugin start and giving the logger of host application
@@ -45,7 +49,9 @@ func (p *Plugin) Configure(ctx context.Context, req *configv1.ConfigureRequest) 
 	//TODO: Additional business logic to be added here using the plugin configuration
 	// Use additional cfg.CustomX plugin configuration
 
-	return &configv1.ConfigureResponse{}, nil
+	return &configv1.ConfigureResponse{
+		BuildInfo: &p.buildInfo,
+	}, nil
 }
 
 // Get Plugin method/operation

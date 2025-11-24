@@ -44,7 +44,7 @@ func NewPlugin() *Plugin {
 
 // SetLogger method is called whenever the plugin start and giving the logger of host application
 func (p *Plugin) SetLogger(logger hclog.Logger) {
-	slog.SetDefault(hclog2slog.New(logger).With("plugin", pluginName))
+	slog.SetDefault(hclog2slog.New(logger))
 }
 
 // Configure configures the plugin with the given configuration
