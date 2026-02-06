@@ -14,10 +14,10 @@ import (
 	"github.com/openkcm/common-sdk/pkg/logger"
 	"github.com/openkcm/common-sdk/pkg/otlp"
 	"github.com/openkcm/common-sdk/pkg/status"
+	root "github.com/openkcm/sis-plugin"
+	"github.com/openkcm/sis-plugin/internal/business"
+	"github.com/openkcm/sis-plugin/internal/config"
 	"github.com/samber/oops"
-	root "github.tools.sap/kms/sis-plugin"
-	"github.tools.sap/kms/sis-plugin/internal/business"
-	"github.tools.sap/kms/sis-plugin/internal/config"
 
 	slogctx "github.com/veqryn/slog-context"
 

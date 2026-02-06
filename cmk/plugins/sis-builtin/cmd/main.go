@@ -14,10 +14,10 @@ import (
 	"github.com/openkcm/common-sdk/pkg/logger"
 	"github.com/openkcm/common-sdk/pkg/otlp"
 	"github.com/openkcm/common-sdk/pkg/status"
+	root "github.com/openkcm/sis-builtin-plugin"
+	"github.com/openkcm/sis-builtin-plugin/internal/business"
+	"github.com/openkcm/sis-builtin-plugin/internal/config"
 	"github.com/samber/oops"
-	root "github.tools.sap/kms/sis-builtin-plugin"
-	"github.tools.sap/kms/sis-builtin-plugin/internal/business"
-	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 
 	slogctx "github.com/veqryn/slog-context"
 

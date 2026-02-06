@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/openkcm/common-sdk/pkg/otlp"
+	"github.com/openkcm/sis-plugin/internal/config"
 	"github.com/samber/oops"
-	"github.tools.sap/kms/sis-plugin/internal/config"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 )

@@ -1,4 +1,4 @@
-package main
+package sis
 
 type Config struct {
 	//config.BaseConfig `yaml:",inline"`

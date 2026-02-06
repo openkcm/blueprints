@@ -6,10 +6,10 @@ import (
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
+	"github.com/openkcm/sis-builtin-plugin/internal/builtin"
+	"github.com/openkcm/sis-builtin-plugin/internal/business/server"
+	"github.com/openkcm/sis-builtin-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
-	"github.tools.sap/kms/sis-builtin-plugin/internal/builtin"
-	"github.tools.sap/kms/sis-builtin-plugin/internal/business/server"
-	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 )
 
 func Main(ctx context.Context, cfg *config.Config) error {

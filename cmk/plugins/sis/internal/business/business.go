@@ -6,9 +6,9 @@ import (
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
+	"github.com/openkcm/sis-plugin/internal/business/server"
+	"github.com/openkcm/sis-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
-	"github.tools.sap/kms/sis-plugin/internal/business/server"
-	"github.tools.sap/kms/sis-plugin/internal/config"
 )
 
 func Main(ctx context.Context, cfg *config.Config) error {

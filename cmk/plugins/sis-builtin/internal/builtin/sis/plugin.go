@@ -9,8 +9,8 @@ import (
 	"github.com/openkcm/plugin-sdk/pkg/hclog2slog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
+	"github.com/openkcm/sis-builtin-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
-	"github.tools.sap/kms/sis-builtin-plugin/internal/config"
 	"gopkg.in/yaml.v3"
 )
 

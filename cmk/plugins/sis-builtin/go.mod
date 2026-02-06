@@ -1,4 +1,4 @@
-module github.tools.sap/kms/sis-builtin-plugin
+module github.com/openkcm/sis-builtin-plugin
 
 go 1.24.3
 

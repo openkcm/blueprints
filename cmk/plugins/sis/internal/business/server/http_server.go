@@ -8,9 +8,9 @@ import (
 
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
+	"github.com/openkcm/sis-plugin/internal/config"
 	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
-	"github.tools.sap/kms/sis-plugin/internal/config"
 )
 
 // registerHandlers registers the default http handlers for the status server
