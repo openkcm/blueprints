@@ -5,8 +5,6 @@ import (
 	"github.tools.sap/kms/sis-builtin-plugin/internal/builtin/sis"
 )
 
-func BuiltIns() []catalog.BuiltIn {
-	return []catalog.BuiltIn{
-		sis.BuiltIn(),
-	}
+func RegisterAllBuiltInPlugins(registry catalog.BuiltInPluginRegistry) {
+	sis.Register(registry)
 }

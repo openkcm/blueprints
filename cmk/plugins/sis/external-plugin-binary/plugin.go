@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/openkcm/plugin-sdk/pkg/catalog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
 	slogctx "github.com/veqryn/slog-context"
@@ -24,6 +25,16 @@ var (
 	_ systeminformationv1.SystemInformationServiceServer = (*Plugin)(nil)
 	_ configv1.ConfigServer                              = (*Plugin)(nil)
 )
+
+func BuiltIn() catalog.BuiltIn {
+	return builtin(NewPlugin("{}"))
+}
+
+func builtin(p *Plugin) catalog.BuiltIn {
+	return catalog.MakeBuiltIn("sis",
+		systeminformationv1.SystemInformationServicePluginServer(p),
+		configv1.ConfigServiceServer(p))
+}
 
 func NewPlugin(buildInfo string) *Plugin {
 	return &Plugin{

@@ -13,10 +13,13 @@ import (
 )
 
 func Main(ctx context.Context, cfg *config.Config) error {
+	buildInPlugins := catalog.DefaultBuiltInPluginRegistry()
+	builtin.RegisterAllBuiltInPlugins(buildInPlugins)
+
 	plugins, err := catalog.Load(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
-	}, builtin.BuiltIns()...)
+	}, buildInPlugins.Get()...)
 	if err != nil {
 		return err
 	}
