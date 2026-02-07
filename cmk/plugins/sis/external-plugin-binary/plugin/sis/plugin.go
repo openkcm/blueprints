@@ -26,12 +26,12 @@ var (
 	_ configv1.ConfigServer                              = (*Plugin)(nil)
 )
 
-func BuiltIn() catalog.BuiltIn {
+func BuiltIn() catalog.BuiltInPlugin {
 	return builtin(NewPlugin("{}"))
 }
 
-func builtin(p *Plugin) catalog.BuiltIn {
-	return catalog.MakeBuiltIn("sis",
+func builtin(p *Plugin) catalog.BuiltInPlugin {
+	return catalog.AsBuiltIn("sis",
 		systeminformationv1.SystemInformationServicePluginServer(p),
 		configv1.ConfigServiceServer(p))
 }
