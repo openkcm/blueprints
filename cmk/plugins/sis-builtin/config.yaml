@@ -3,7 +3,7 @@ application:
   environment: development
 
 http:
-  address: :9092
+  address: :8080
 
 status:
   enabled: true
@@ -19,5 +19,6 @@ logger:
 plugins:
   - name: sis
     logLevel: debug
+    type: SystemInformation
     yamlConfiguration: |
       hura: text

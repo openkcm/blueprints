@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/common-sdk/pkg/otlp"
-	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
+	"github.com/openkcm/plugin-sdk/api/service/systeminformation"
 	"github.com/openkcm/sis-builtin-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
@@ -18,7 +18,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func pingHandlerFunc(cfg *config.Config, sisClient systeminformationv1.SystemInformationServiceClient) func(http.ResponseWriter, *http.Request) {
+func pingHandlerFunc(cfg *config.Config, sys systeminformation.SystemInformation) func(http.ResponseWriter, *http.Request) {
 	traceAttrs := otlp.CreateAttributesFrom(cfg.Application,
 		attribute.String(commoncfg.AttrOperation, "ping"),
 	)
@@ -64,9 +64,9 @@ func pingHandlerFunc(cfg *config.Config, sisClient systeminformationv1.SystemInf
 		{
 			w.Header().Set("Content-Type", "application/json")
 
-			_, err := sisClient.Get(ctx, &systeminformationv1.GetRequest{
-				Id:   uuid.New().String(),
-				Type: systeminformationv1.RequestType_REQUEST_TYPE_SYSTEM,
+			_, err := sys.GetSystemInfo(ctx, &systeminformation.GetSystemInfoRequest{
+				ID:   uuid.New().String(),
+				Type: systeminformation.SystemType,
 			})
 			if err != nil {
 				_, err := w.Write([]byte("{ \"error\": \"" + err.Error() + "\" }"))

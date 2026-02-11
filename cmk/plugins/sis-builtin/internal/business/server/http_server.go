@@ -6,8 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/openkcm/plugin-sdk/pkg/catalog"
-	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
+	serviceapi "github.com/openkcm/plugin-sdk/api/service"
 	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -15,18 +14,15 @@ import (
 )
 
 // registerHandlers registers the default http handlers for the status server
-func registerHandlers(mux *http.ServeMux, cfg *config.Config, plugins *catalog.Catalog) {
-	// Load configured sis plugin and create the grpc client
-	sisPlugin := plugins.LookupByTypeAndName("SystemInformationService", "sis")
-	sisClient := systeminformationv1.NewSystemInformationServiceClient(sisPlugin.ClientConnection())
+func registerHandlers(mux *http.ServeMux, cfg *config.Config, serviceCatalog serviceapi.Registry) {
 
-	mux.HandleFunc("/ping", pingHandlerFunc(cfg, sisClient))
+	mux.HandleFunc("/ping", pingHandlerFunc(cfg, serviceCatalog.GetSystemInformation()))
 }
 
 // createStatusServer creates a status http server using the given config
-func createHTTPServer(ctx context.Context, cfg *config.Config, plugins *catalog.Catalog) *http.Server {
+func createHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog serviceapi.Registry) *http.Server {
 	mux := http.NewServeMux()
-	registerHandlers(mux, cfg, plugins)
+	registerHandlers(mux, cfg, serviceCatalog)
 
 	slogctx.Info(ctx, "Creating HTTP server", "address", cfg.HTTP.Address)
 
@@ -37,12 +33,12 @@ func createHTTPServer(ctx context.Context, cfg *config.Config, plugins *catalog.
 }
 
 // StartHTTPServer starts the gRPC server using the given config.
-func StartHTTPServer(ctx context.Context, cfg *config.Config, plugins *catalog.Catalog) error {
+func StartHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog serviceapi.Registry) error {
 	if err := initMeters(ctx, cfg); err != nil {
 		return err
 	}
 
-	server := createHTTPServer(ctx, cfg, plugins)
+	server := createHTTPServer(ctx, cfg, serviceCatalog)
 
 	slogctx.Info(ctx, "Starting HTTP listener", "address", server.Addr)
 
@@ -70,7 +66,7 @@ func StartHTTPServer(ctx context.Context, cfg *config.Config, plugins *catalog.C
 	defer shutdownRelease()
 
 	listErrors := make([]error, 0)
-	err = plugins.Close()
+	err = serviceCatalog.Close()
 	if err != nil {
 		listErrors = append(listErrors, oops.In("HTTP Server").
 			WithContext(ctx).

@@ -13,19 +13,19 @@ import (
 )
 
 func Main(ctx context.Context, cfg *config.Config) error {
-	buildInPlugins := catalog.DefaultBuiltInPluginRegistry()
+	buildInPlugins := catalog.CreateBuiltInPluginRegistry()
 	builtin.RegisterAllBuiltInPlugins(buildInPlugins)
 
-	plugins, err := catalog.Load(ctx, catalog.Config{
+	registry, err := catalog.CreateRegistry(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
-	}, buildInPlugins.Get()...)
+	}, buildInPlugins.Retrieve()...)
 	if err != nil {
 		return err
 	}
 
 	pluginBuildInfos := make([]string, 0)
-	for _, pluginInfo := range plugins.ListPluginInfo() {
+	for _, pluginInfo := range registry.ListPluginInfo() {
 		pluginBuildInfos = append(pluginBuildInfos, pluginInfo.Build())
 	}
 
@@ -34,5 +34,5 @@ func Main(ctx context.Context, cfg *config.Config) error {
 		slogctx.Error(ctx, "Failed to update components of build info")
 	}
 
-	return server.StartHTTPServer(ctx, cfg, plugins)
+	return server.StartHTTPServer(ctx, cfg, registry)
 }

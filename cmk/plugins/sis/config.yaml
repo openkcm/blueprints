@@ -3,7 +3,7 @@ application:
   environment: development
 
 http:
-  address: :9092
+  address: :8080
 
 status:
   enabled: true
