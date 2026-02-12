@@ -66,18 +66,18 @@ func pingHandlerFunc(cfg *config.Config, sisClient systeminformationv1.SystemInf
 
 			_, err := sisClient.Get(ctx, &systeminformationv1.GetRequest{
 				Id:   uuid.New().String(),
-				Type: systeminformationv1.RequestType_REQUEST_TYPE_SYSTEM,
+				Type: "system",
 			})
 			if err != nil {
 				_, err := w.Write([]byte("{ \"error\": \"" + err.Error() + "\" }"))
 				if err != nil {
 					return
 				}
-			}
-
-			_, err = w.Write([]byte("{ \"result\": \"OK\" }"))
-			if err != nil {
-				return
+			} else {
+				_, err = w.Write([]byte("{ \"result\": \"OK\" }"))
+				if err != nil {
+					return
+				}
 			}
 		}
 		DoSomething(ctx)

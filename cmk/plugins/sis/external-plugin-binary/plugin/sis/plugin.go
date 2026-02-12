@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"buf.build/go/protovalidate"
 	"github.com/hashicorp/go-hclog"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
@@ -67,8 +68,10 @@ func (p *Plugin) Configure(ctx context.Context, req *configv1.ConfigureRequest) 
 
 // Get Plugin method/operation
 func (p *Plugin) Get(ctx context.Context, req *systeminformationv1.GetRequest) (*systeminformationv1.GetResponse, error) {
-
-	slogctx.Debug(ctx, "SIS Get called", "req", req.GetId())
+	slogctx.Debug(ctx, "SIS Get called", "req", req)
+	if err := protovalidate.Validate(req); err != nil {
+		return nil, err
+	}
 
 	//TODO: Business logic here
 
