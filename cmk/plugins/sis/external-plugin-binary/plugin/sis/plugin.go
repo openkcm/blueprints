@@ -32,7 +32,7 @@ func BuiltIn() catalog.BuiltInPlugin {
 }
 
 func builtin(p *Plugin) catalog.BuiltInPlugin {
-	return catalog.AsBuiltIn("sis",
+	return catalog.MakeBuiltIn("sis",
 		systeminformationv1.SystemInformationServicePluginServer(p),
 		configv1.ConfigServiceServer(p))
 }

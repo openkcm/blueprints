@@ -24,7 +24,7 @@ func BuiltIn() catalog.BuiltInPlugin {
 }
 
 func builtin(p *Plugin) catalog.BuiltInPlugin {
-	return catalog.AsBuiltIn(pluginName,
+	return catalog.MakeBuiltIn(pluginName,
 		systeminformationv1.SystemInformationServicePluginServer(p),
 		configv1.ConfigServiceServer(p))
 }

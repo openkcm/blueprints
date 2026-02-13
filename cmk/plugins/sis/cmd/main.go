@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
-	"github.com/openkcm/common-sdk/pkg/health"
 	"github.com/openkcm/common-sdk/pkg/logger"
 	"github.com/openkcm/common-sdk/pkg/otlp"
 	"github.com/openkcm/common-sdk/pkg/status"
@@ -67,21 +66,6 @@ func run(ctx context.Context) error {
 
 	// Status Server Initialisation
 	go func() {
-		liveness := status.WithLiveness(
-			health.NewHandler(
-				health.NewChecker(health.WithDisabledAutostart()),
-			),
-		)
-
-		healthOptions := make([]health.Option, 0)
-		healthOptions = append(healthOptions,
-			health.WithDisabledAutostart(),
-			health.WithTimeout(5*time.Second),
-			health.WithStatusListener(func(ctx context.Context, state health.State) {
-				slogctx.Info(ctx, "readiness status changed", "status", state.Status)
-			}),
-		)
-
 		// // uncomment if your service does expose a GRPC service that does have enabled the grpc health check
 		// // as following healthpb.RegisterHealthServer(grpcServer, &healthgrpc.Server{})
 		// grpcCfg := commoncfg.GRPCClient{
@@ -94,13 +78,7 @@ func run(ctx context.Context) error {
 		// healthOptions = append(healthOptions,
 		// 	health.WithDatabaseChecker("postgres", "host=%s port=%s user=%s password=%s dbname=%s ..."))
 
-		readiness := status.WithReadiness(
-			health.NewHandler(
-				health.NewChecker(healthOptions...),
-			),
-		)
-
-		err := status.Start(ctx, &cfg.BaseConfig, liveness, readiness)
+		err := status.Serve(ctx, &cfg.BaseConfig)
 		if err != nil {
 			slogctx.Error(ctx, "Failure on the status server", "error", err)
 
