@@ -6,7 +6,7 @@ import (
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
-	"github.com/openkcm/plugin-sdk/pkg/service"
+	servicewrapper "github.com/openkcm/plugin-sdk/service/wrapper"
 	"github.com/openkcm/sis-plugin/internal/business/server"
 	"github.com/openkcm/sis-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
@@ -17,7 +17,7 @@ func Main(ctx context.Context, cfg *config.Config) error {
 	RegisterAllBuiltInPlugins(buildInPlugins)
 
 	// Loading all plugins given through config.yaml file as configuration
-	serviceRepository, err := service.CreateServiceRepository(ctx, catalog.Config{
+	serviceRepository, err := servicewrapper.CreateServiceRepository(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
 	}, buildInPlugins.Retrieve()...)

@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	serviceapi "github.com/openkcm/plugin-sdk/api/service"
+	serviceapi "github.com/openkcm/plugin-sdk/service/api"
 	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
 

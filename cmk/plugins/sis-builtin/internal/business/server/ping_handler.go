@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/common-sdk/pkg/otlp"
-	"github.com/openkcm/plugin-sdk/api/service/systeminformation"
+	"github.com/openkcm/plugin-sdk/service/api/systeminformation"
 	"github.com/openkcm/sis-builtin-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"

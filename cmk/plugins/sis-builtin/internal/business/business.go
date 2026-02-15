@@ -6,7 +6,7 @@ import (
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
-	"github.com/openkcm/plugin-sdk/pkg/service"
+	servicewrapper "github.com/openkcm/plugin-sdk/service/wrapper"
 	"github.com/openkcm/sis-builtin-plugin/internal/builtin"
 	"github.com/openkcm/sis-builtin-plugin/internal/business/server"
 	"github.com/openkcm/sis-builtin-plugin/internal/config"
@@ -17,7 +17,7 @@ func Main(ctx context.Context, cfg *config.Config) error {
 	buildInPlugins := catalog.CreateBuiltInPluginRegistry()
 	builtin.RegisterAllBuiltInPlugins(buildInPlugins)
 
-	registry, err := service.CreateServiceRepository(ctx, catalog.Config{
+	registry, err := servicewrapper.CreateServiceRepository(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
 	}, buildInPlugins.Retrieve()...)

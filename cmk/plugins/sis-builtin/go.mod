@@ -1,6 +1,6 @@
 module github.com/openkcm/sis-builtin-plugin
 
-go 1.25.4
+go 1.26.0
 
 require (
 	buf.build/go/protovalidate v1.1.2
@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/openkcm/common-sdk v1.12.0
-	github.com/openkcm/plugin-sdk v0.9.3-0.20260215205204-6b28e534a0fb
+	github.com/openkcm/plugin-sdk v0.9.3-0.20260215215646-4333911f4684
 	github.com/samber/oops v1.21.0
 	github.com/veqryn/slog-context v0.9.0
 	go.opentelemetry.io/otel v1.40.0
