@@ -16,7 +16,12 @@ import (
 // registerHandlers registers the default http handlers for the status server
 func registerHandlers(mux *http.ServeMux, cfg *config.Config, serviceCatalog serviceapi.Registry) {
 
-	mux.HandleFunc("/ping", pingHandlerFunc(cfg, serviceCatalog.GetSystemInformation()))
+	sis, ok := serviceCatalog.SystemInformation()
+	if !ok {
+		panic("unable to find system information")
+	}
+
+	mux.HandleFunc("/ping", pingHandlerFunc(cfg, sis))
 }
 
 // createStatusServer creates a status http server using the given config

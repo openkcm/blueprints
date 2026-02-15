@@ -6,6 +6,7 @@ import (
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
+	"github.com/openkcm/plugin-sdk/pkg/service"
 	"github.com/openkcm/sis-plugin/internal/business/server"
 	"github.com/openkcm/sis-plugin/internal/config"
 	slogctx "github.com/veqryn/slog-context"
@@ -16,7 +17,7 @@ func Main(ctx context.Context, cfg *config.Config) error {
 	RegisterAllBuiltInPlugins(buildInPlugins)
 
 	// Loading all plugins given through config.yaml file as configuration
-	plugins, err := catalog.Load(ctx, catalog.Config{
+	serviceRepository, err := service.CreateServiceRepository(ctx, catalog.Config{
 		Logger:        slog.Default(),
 		PluginConfigs: cfg.Plugins,
 	}, buildInPlugins.Retrieve()...)
@@ -25,7 +26,7 @@ func Main(ctx context.Context, cfg *config.Config) error {
 	}
 
 	pluginBuildInfos := make([]string, 0)
-	for _, pluginInfo := range plugins.ListPluginInfo() {
+	for _, pluginInfo := range serviceRepository.RawCatalog.ListPluginInfo() {
 		pluginBuildInfos = append(pluginBuildInfos, pluginInfo.Build())
 	}
 
@@ -34,5 +35,5 @@ func Main(ctx context.Context, cfg *config.Config) error {
 		slogctx.Error(ctx, "Failed to update components of build info")
 	}
 
-	return server.StartHTTPServer(ctx, cfg, plugins)
+	return server.StartHTTPServer(ctx, cfg, serviceRepository.RawCatalog)
 }
