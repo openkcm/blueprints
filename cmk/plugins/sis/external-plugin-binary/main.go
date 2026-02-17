@@ -9,7 +9,7 @@ import (
 	"github.com/openkcm/plugin-sdk/pkg/plugin"
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
-	"github.com/openkcm/sis-plugin/external-plugin-binary/plugin/sis"
+	"github.com/openkcm/sis/external-plugin-binary/plugin/sis"
 )
 
 var BuildInfo = "{}"

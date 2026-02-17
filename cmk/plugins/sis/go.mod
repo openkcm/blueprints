@@ -1,4 +1,4 @@
-module github.com/openkcm/sis-plugin
+module github.com/openkcm/sis
 
 go 1.26.0
 

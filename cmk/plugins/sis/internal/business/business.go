@@ -6,9 +6,9 @@ import (
 
 	"github.com/openkcm/common-sdk/pkg/commoncfg"
 	"github.com/openkcm/plugin-sdk/pkg/catalog"
-	servicewrapper "github.com/openkcm/plugin-sdk/service/wrapper"
-	"github.com/openkcm/sis-plugin/internal/business/server"
-	"github.com/openkcm/sis-plugin/internal/config"
+	"github.com/openkcm/sis/internal/business/server"
+	"github.com/openkcm/sis/internal/config"
+	servicewrapper "github.com/openkcm/sis/internal/service/wrapper"
 	slogctx "github.com/veqryn/slog-context"
 )
 

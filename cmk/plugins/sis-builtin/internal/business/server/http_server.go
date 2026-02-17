@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	serviceapi "github.com/openkcm/plugin-sdk/service/api"
+	servicewrapper "github.com/openkcm/sis-builtin-plugin/internal/service/wrapper"
 	"github.com/samber/oops"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -14,18 +14,18 @@ import (
 )
 
 // registerHandlers registers the default http handlers for the status server
-func registerHandlers(mux *http.ServeMux, cfg *config.Config, serviceCatalog serviceapi.Registry) {
+func registerHandlers(mux *http.ServeMux, cfg *config.Config, serviceCatalog *servicewrapper.Repository) {
 
-	sis, ok := serviceCatalog.SystemInformation()
-	if !ok {
-		panic("unable to find system information")
+	sis, err := serviceCatalog.SystemInformation()
+	if err != nil {
+		panic(err)
 	}
 
 	mux.HandleFunc("/ping", pingHandlerFunc(cfg, sis))
 }
 
 // createStatusServer creates a status http server using the given config
-func createHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog serviceapi.Registry) *http.Server {
+func createHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog *servicewrapper.Repository) *http.Server {
 	mux := http.NewServeMux()
 	registerHandlers(mux, cfg, serviceCatalog)
 
@@ -38,7 +38,7 @@ func createHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog se
 }
 
 // StartHTTPServer starts the gRPC server using the given config.
-func StartHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog serviceapi.Registry) error {
+func StartHTTPServer(ctx context.Context, cfg *config.Config, serviceCatalog *servicewrapper.Repository) error {
 	if err := initMeters(ctx, cfg); err != nil {
 		return err
 	}
