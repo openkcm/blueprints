@@ -19,6 +19,7 @@ logger:
 plugins:
   - name: sis
     type: SystemInformationService
+    version: 2
     path: ./sis-plugin
     logLevel: debug
     yamlConfiguration: |

@@ -10,7 +10,7 @@ import (
 	systeminformationv1 "github.com/openkcm/plugin-sdk/proto/plugin/systeminformation/v1"
 	configv1 "github.com/openkcm/plugin-sdk/proto/service/common/config/v1"
 	slogctx "github.com/veqryn/slog-context"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/openkcm/plugin-sdk/pkg/hclog2slog"
 )
@@ -34,7 +34,8 @@ func BuiltIn() catalog.BuiltInPlugin {
 func builtin(p *Plugin) catalog.BuiltInPlugin {
 	return catalog.MakeBuiltIn("sis",
 		systeminformationv1.SystemInformationServicePluginServer(p),
-		configv1.ConfigServiceServer(p))
+		configv1.ConfigServiceServer(p),
+	)
 }
 
 func NewPlugin(buildInfo string) *Plugin {
@@ -50,7 +51,7 @@ func (p *Plugin) SetLogger(logger hclog.Logger) {
 
 // Configure configures the plugin with the given configuration
 func (p *Plugin) Configure(ctx context.Context, req *configv1.ConfigureRequest) (*configv1.ConfigureResponse, error) {
-	slogctx.Info(ctx, "Configuring plugin")
+	slogctx.Debug(ctx, "Configuring plugin", "req", req)
 
 	cfg := &Config{}
 	err := yaml.Unmarshal([]byte(req.GetYamlConfiguration()), cfg)
